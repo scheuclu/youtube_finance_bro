@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "yfb"
+version = "0.1.0"
+description = "Watches YouTube finance channels, summarizes new videos to Telegram, builds an investment knowledge base"
+requires-python = ">=3.11"
+dependencies = [
+    "google-genai>=1.0.0",
+    "youtube-transcript-api>=1.0.0",
+    "feedparser>=6.0.11",
+    "httpx>=0.27.0",
+    "pydantic>=2.7.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,15 @@
+# Channels to watch. Get a channel_id from the channel page source
+# (look for "channelId") or: yt-dlp --print channel_id <any video URL>
+channels:
+  - channel_id: UC6ipRbtXU3-xJLET6oz6Hsw
+    name: "Der Sofa Investor"
+  - channel_id: UCN5FOXOJfpX-edVOhd2k1kQ
+    name: "fokusinvestor"
+
+settings:
+  # Ignore feed entries older than this (guards against feed weirdness and
+  # prevents summarizing stale videos when a channel is first added).
+  max_video_age_days: 3
+  # How many cron runs may attempt a transcript before giving up and sending
+  # a metadata-only notification (~6 attempts at 30-min cadence ≈ 3 hours).
+  transcript_max_attempts: 6
