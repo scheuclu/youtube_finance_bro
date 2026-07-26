@@ -105,11 +105,24 @@ for semantic search (planned: Gemini embeddings + sqlite-vec — same API key).
 
 ## Dashboard
 
-A static dashboard (GitHub Pages) reads `data/kb.sqlite3` directly in your
-browser via sql.js — no backend, always shows the latest committed state:
-**https://scheuclu.github.io/youtube_finance_bro/**
+A Next.js app in `web/`, hosted on Vercel. It fetches `data/kb.sqlite3` from
+the repo server-side (2-minute cache), so it always reflects the latest bot
+commit with no redeploys.
 
 - **Feed** — all video summaries with full-text search and channel filter
 - **Tickers** — every ticker mention with stance, sentiment, price targets
 - **Pipeline** — ingestion status, per-channel stats, errors
-- **Ask** — Gemini-synthesized answers (your API key stays in the browser's localStorage)
+- **Ask** — Gemini-synthesized answers via a server-side API route; the
+  `GEMINI_API_KEY` lives in a Vercel env var (use a free-tier/quota-capped
+  key — the endpoint is rate-limited but public)
+
+Local development:
+
+```sh
+cd web && npm install
+GEMINI_API_KEY=... npm run dev   # key optional; Ask tab degrades without it
+```
+
+Vercel setup (once): import the GitHub repo, set **Root Directory** to
+`web/`, add the `GEMINI_API_KEY` env var. Vercel auto-deploys `main` and
+creates preview deployments for every PR.
