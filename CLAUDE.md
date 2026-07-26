@@ -10,24 +10,19 @@ branch, commit there, push, and open a PR for review.
 
 ## PR conventions
 
-- **Every PR that touches `docs/` (the dashboard) must include a branch
-  preview link at the top of the description:**
-
-  ```
-  Preview: https://raw.githack.com/scheuclu/youtube_finance_bro/<branch>/docs/index.html
-  ```
-
-  This works because the dashboard is a self-contained HTML file — the DB and
-  sql.js load from absolute URLs, so any branch version runs directly in the
-  browser with no build or deploy.
-
-- For UI changes, also verify rendering in a headless browser before opening
-  the PR and mention what was checked.
+- The dashboard is a Next.js app in `web/`, deployed on Vercel. Vercel
+  creates a preview deployment for every PR automatically — point the user
+  at the preview link from the PR checks for UI review.
+- For UI changes, verify `cd web && npm run build` passes and render the
+  pages in a headless browser before opening the PR; mention what was checked.
 
 ## Architecture notes
 
 - The committed `data/kb.sqlite3` is both the pipeline state and the knowledge
-  base; the dashboard (GitHub Pages, `docs/index.html`) reads it client-side.
+  base; the dashboard (`web/`, Next.js on Vercel) fetches it server-side with
+  a short TTL cache and queries it with better-sqlite3.
+- The Ask feature calls Gemini from `web/app/api/ask/route.ts` using the
+  `GEMINI_API_KEY` env var on Vercel — keep that key free-tier/quota-capped.
 - Summarization uses Gemini (`google-genai` SDK). Caption transcripts are the
   cheap preferred path; when YouTube blocks caption downloads (always the case
   on GitHub runner IPs), the pipeline falls back to direct YouTube video
