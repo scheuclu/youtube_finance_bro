@@ -29,7 +29,7 @@ class VideoAnalysis(BaseModel):
     tickers: list[TickerMention] = Field(description="Every specific tradeable asset the creator takes a position on or meaningfully discusses. Empty list if none.")
 
 
-EXTRACTION_SYSTEM_PROMPT = """You analyze transcripts of YouTube finance videos and produce a structured analysis for an investor's personal knowledge base.
+EXTRACTION_SYSTEM_PROMPT = """You analyze YouTube finance videos (given as a caption transcript or as the video itself) and produce a structured analysis for an investor's personal knowledge base.
 
 Guidelines:
 - Report what the CREATOR claims and recommends — you are extracting their views, not validating them. Do not add your own investment opinions or disclaimers.

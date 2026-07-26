@@ -8,10 +8,11 @@ video to Telegram, and builds a queryable investment knowledge base over time.
 A GitHub Actions workflow runs every 30 minutes:
 
 1. Polls each channel's free RSS feed for new videos (no YouTube API key).
-2. Fetches the video's captions (`youtube-transcript-api`).
-3. Sends the transcript to Gemini (`gemini-3.6-flash`), which returns a summary
-   **and** structured data in one call: tickers, stance (buy/sell/hold/watch),
-   sentiment, thesis, price targets, macro view.
+2. Fetches the video's captions (`youtube-transcript-api`) — and when YouTube
+   blocks the runner's IP, Gemini ingests the video directly by URL instead.
+3. Gemini (`gemini-3.6-flash`) returns a summary **and** structured data in
+   one call: tickers, stance (buy/sell/hold/watch), sentiment, thesis, price
+   targets, macro view.
 4. Stores everything in `data/kb.sqlite3` (committed back to the repo — the
    DB is the pipeline state and the knowledge base).
 5. Sends a formatted summary to your Telegram.
@@ -86,9 +87,13 @@ for semantic search (planned: Gemini embeddings + sqlite-vec — same API key).
 ## Notes & limitations
 
 - **Transcript blocking:** YouTube often blocks caption requests from
-  datacenter IPs. The pipeline retries across runs (fresh runner ≈ fresh IP)
-  and falls back to a metadata-only notification after ~3 hours. Configuring
-  the Webshare proxy secrets fixes this permanently.
+  datacenter IPs. When that happens the pipeline falls back to Gemini's
+  direct YouTube video ingestion in the same run — slower and more input
+  tokens (~100/sec of video at low media resolution) but still well under a
+  cent per video on flash pricing. The optional Webshare proxy secrets make
+  the cheap caption path work in CI too. Note: Gemini video ingestion only
+  works for public videos, and the free API tier caps it at 8 hours of video
+  per day.
 - RSS only exposes a channel's ~15 most recent videos; deeper backfill is out
   of scope.
 - Scheduled workflows are disabled by GitHub after 60 days without repo

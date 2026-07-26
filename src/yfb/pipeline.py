@@ -13,7 +13,7 @@ from google import genai
 from google.genai import errors as genai_errors
 
 from . import db, feeds, telegram, transcripts
-from .analyze import AnalysisRefused, analyze_video
+from .analyze import AnalysisRefused, analyze_video, analyze_video_url
 from .config import Config
 
 log = logging.getLogger(__name__)
@@ -41,25 +41,30 @@ def poll_feeds(conn: sqlite3.Connection, config: Config) -> None:
 
 
 def process_transcripts(conn: sqlite3.Connection, config: Config) -> None:
+    """Best-effort caption fetch — the cheap path.
+
+    Failures never block the pipeline: items without a stored transcript are
+    analyzed via direct video ingestion (analyze_video_url) in the same run.
+    """
     for item in db.items_by_status(conn, "new", "pending_transcript"):
         item_id = item["id"]
+        if db.get_transcript(conn, item_id) is not None:
+            db.set_status(conn, item_id, "new", None)
+            conn.commit()
+            continue
         try:
-            result = transcripts.fetch_transcript(item["external_id"], config)
+            result = transcripts.fetch_transcript(item["external_id"], config, attempts=1)
         except transcripts.PermanentTranscriptError as exc:
-            log.info("no transcript for %s (%s)", item["external_id"], exc)
-            db.set_status(conn, item_id, "transcript_failed", str(exc))
+            log.info("no captions for %s (%s); will ingest video directly",
+                     item["external_id"], exc)
+            db.set_status(conn, item_id, "new", f"captions unavailable: {exc}")
         except transcripts.TransientTranscriptError as exc:
-            attempts = db.bump_transcript_attempts(conn, item_id)
-            if attempts >= config.settings.transcript_max_attempts:
-                log.warning("giving up on transcript for %s after %d attempts",
-                            item["external_id"], attempts)
-                db.set_status(conn, item_id, "transcript_failed", str(exc))
-            else:
-                db.set_status(conn, item_id, "pending_transcript", str(exc))
+            db.bump_transcript_attempts(conn, item_id)
+            log.info("captions blocked for %s; will ingest video directly",
+                     item["external_id"])
+            db.set_status(conn, item_id, "new", f"captions blocked: {exc}")
         else:
             db.store_transcript(conn, item_id, result.text, result.language, result.is_generated)
-            # Transcript stored; item stays in a pre-analysis status. We reuse
-            # 'new' so analyze_pending picks it up by transcript presence.
             db.set_status(conn, item_id, "new", None)
         conn.commit()
 
@@ -73,16 +78,23 @@ def analyze_pending(conn: sqlite3.Connection, config: Config) -> None:
     for item in db.items_by_status(conn, "new"):
         item_id = item["id"]
         transcript_text = db.get_transcript(conn, item_id)
-        if transcript_text is None:
-            continue  # still awaiting transcript
         try:
-            result = analyze_video(
-                client,
-                title=item["title"],
-                channel_name=item["source_name"] or "",
-                published_at=item["published_at"],
-                transcript=transcript_text,
-            )
+            if transcript_text is not None:
+                result = analyze_video(
+                    client,
+                    title=item["title"],
+                    channel_name=item["source_name"] or "",
+                    published_at=item["published_at"],
+                    transcript=transcript_text,
+                )
+            else:
+                result = analyze_video_url(
+                    client,
+                    title=item["title"],
+                    channel_name=item["source_name"] or "",
+                    published_at=item["published_at"],
+                    url=item["url"],
+                )
         except AnalysisRefused as exc:
             db.set_status(conn, item_id, "failed", f"refused: {exc}")
         except genai_errors.APIError as exc:

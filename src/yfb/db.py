@@ -5,12 +5,12 @@ committed back to the repo by the GitHub Actions workflow.
 
 Item status state machine:
     seen_skipped        recorded on first sight of a source; never processed
-    new                 awaiting transcript
-    pending_transcript  transient transcript failure; retried on later runs
-    transcript_failed   gave up on transcript; metadata-only notification
+    new                 awaiting analysis (with or without a caption transcript —
+                        videos without one are ingested directly by Gemini)
     summarized          analysis stored; awaiting Telegram notification
     notified            done
-    failed              permanent failure (e.g. model refusal)
+    failed              permanent failure (e.g. safety block)
+    pending_transcript / transcript_failed   legacy statuses, still handled
 """
 
 from __future__ import annotations

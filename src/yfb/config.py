@@ -26,7 +26,6 @@ class Channel:
 @dataclass
 class Settings:
     max_video_age_days: int = 3
-    transcript_max_attempts: int = 6
 
 
 @dataclass
@@ -53,7 +52,6 @@ def load_config(channels_file: Path = DEFAULT_CHANNELS_FILE, db_path: Path = DEF
     settings_raw = raw.get("settings") or {}
     settings = Settings(
         max_video_age_days=int(settings_raw.get("max_video_age_days", 3)),
-        transcript_max_attempts=int(settings_raw.get("transcript_max_attempts", 6)),
     )
 
     return Config(

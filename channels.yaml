@@ -10,6 +10,3 @@ settings:
   # Ignore feed entries older than this (guards against feed weirdness and
   # prevents summarizing stale videos when a channel is first added).
   max_video_age_days: 3
-  # How many cron runs may attempt a transcript before giving up and sending
-  # a metadata-only notification (~6 attempts at 30-min cadence ≈ 3 hours).
-  transcript_max_attempts: 6
