@@ -28,3 +28,13 @@ branch, commit there, push, and open a PR for review.
   on GitHub runner IPs), the pipeline falls back to direct YouTube video
   ingestion by URL in the same run.
 - Tests: `.venv/bin/python -m pytest -q` (run before every PR).
+
+## Auth (Ask tab only)
+
+- Supabase Auth (`@supabase/ssr`), same invite-only model as the AssetTracker
+  project: sign-ups disabled in the Supabase dashboard; owner creates accounts.
+- Only `/ask` and `/api/ask` are gated (see `web/proxy.ts` matcher);
+  the rest of the dashboard is public.
+- Dev and Vercel previews skip the gate (`FORCE_AUTH=1` re-enables,
+  `DISABLE_AUTH=1` force-disables). Production always gated.
+- Vercel env vars: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`.

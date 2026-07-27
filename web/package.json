@@ -8,6 +8,8 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
+    "@supabase/ssr": "^0.12.3",
+    "@supabase/supabase-js": "^2.110.8",
     "@tailwindcss/postcss": "^4.3.3",
     "better-sqlite3": "^13.0.1",
     "class-variance-authority": "^0.7.1",

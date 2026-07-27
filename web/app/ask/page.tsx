@@ -1,11 +1,44 @@
 "use client";
 
-import { useState } from "react";
-import { Sparkles } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { LogOut, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { supabaseBrowser } from "@/lib/supabase";
+
+function SessionBar() {
+  const router = useRouter();
+  const [email, setEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabaseBrowser()
+      .auth.getUser()
+      .then(({ data }) => setEmail(data.user?.email ?? null))
+      .catch(() => setEmail(null));
+  }, []);
+
+  if (!email) return null; // dev/preview (gate skipped) or not yet loaded
+  return (
+    <div className="flex items-center justify-end gap-2 text-xs text-muted-foreground">
+      {email}
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-6 px-2 text-xs"
+        onClick={async () => {
+          await supabaseBrowser().auth.signOut();
+          router.replace("/");
+          router.refresh();
+        }}
+      >
+        <LogOut className="size-3" /> Sign out
+      </Button>
+    </div>
+  );
+}
 
 export default function AskPage() {
   const [question, setQuestion] = useState("");
@@ -34,6 +67,7 @@ export default function AskPage() {
 
   return (
     <div className="space-y-4">
+      <SessionBar />
       <div className="flex gap-2">
         <Input
           type="search"
