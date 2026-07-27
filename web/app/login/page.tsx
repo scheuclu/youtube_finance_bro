@@ -11,7 +11,7 @@ import { KeyRound, Loader2, MailCheck, MonitorPlay, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { supabaseBrowser } from "@/lib/supabase";
+import { authConfigured, supabaseBrowser } from "@/lib/supabase";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -70,7 +70,12 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {linkSent ? (
+          {!authConfigured ? (
+            <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 text-xs text-amber-700 dark:text-amber-400">
+              Sign-in isn&apos;t configured on this deployment yet — add the Supabase environment
+              variables to enable the Ask tab. Everything else works without an account.
+            </p>
+          ) : linkSent ? (
             <div className="flex items-start gap-2.5 rounded-lg border border-emerald-600/30 bg-emerald-500/10 p-3 text-sm text-emerald-700 dark:text-emerald-400">
               <MailCheck className="mt-0.5 size-4 shrink-0" />
               Check your inbox — if that address has an account, a sign-in link is on its way.
