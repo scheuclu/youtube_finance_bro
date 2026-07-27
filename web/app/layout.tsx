@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+import { Analytics } from "@vercel/analytics/next";
 import { MonitorPlay } from "lucide-react";
 import { getPipeline } from "@/lib/queries";
 import { Tabs, ThemeToggle } from "./nav";
@@ -46,6 +47,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </header>
           <main className="mx-auto max-w-5xl px-6 py-8 pb-24">{children}</main>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
