@@ -38,3 +38,11 @@ branch, commit there, push, and open a PR for review.
 - Dev and Vercel previews skip the gate (`FORCE_AUTH=1` re-enables,
   `DISABLE_AUTH=1` force-disables). Production always gated.
 - Vercel env vars: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+
+## Design system (dashboard)
+
+Linear/Vercel-inspired, dark-first: ambient gradient canvas (`body::before`),
+translucent `--card` + `.glass` (backdrop blur + inner highlight), indigo
+accent, `rounded-2xl`, `.lift` hover. Tokens are overridden at the bottom of
+`web/app/globals.css` — extend there rather than hard-coding colors.
+Data-viz lives in `web/app/charts.tsx` (pure SVG/divs, no chart library).

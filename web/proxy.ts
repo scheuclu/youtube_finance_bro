@@ -22,10 +22,20 @@ export async function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !anonKey) {
+    // Misconfigured rather than unauthenticated: fail CLOSED (the Ask endpoint
+    // spends tokens) but with a clear message instead of a 500 stack trace.
+    return req.nextUrl.pathname.startsWith("/api/")
+      ? NextResponse.json({ error: "Sign-in is not configured on this deployment." }, { status: 503 })
+      : NextResponse.redirect(new URL("/login?unconfigured=1", req.url));
+  }
+
   let res = NextResponse.next({ request: req });
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    url,
+    anonKey,
     {
       cookies: {
         getAll: () => req.cookies.getAll(),

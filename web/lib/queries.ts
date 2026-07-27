@@ -147,3 +147,62 @@ export async function getAskContext() {
     .all();
   return { summaries, mentions };
 }
+
+/** Videos analyzed per day (by publish date) over the last N days. */
+export async function getActivity(days = 30): Promise<{ date: string; value: number }[]> {
+  const db = await getDb();
+  const rows = db
+    .prepare(
+      `SELECT substr(items.published_at, 1, 10) AS date, COUNT(*) AS value
+       FROM summaries s JOIN items ON items.id = s.item_id
+       GROUP BY date`
+    )
+    .all() as { date: string; value: number }[];
+  const byDate = new Map(rows.map((r) => [r.date, r.value]));
+
+  const out: { date: string; value: number }[] = [];
+  const today = new Date();
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setUTCDate(d.getUTCDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    out.push({ date: key, value: byDate.get(key) ?? 0 });
+  }
+  return out;
+}
+
+/** Most-discussed tickers with their sentiment mix. */
+export async function getTopTickers(limit = 8) {
+  const db = await getDb();
+  return db
+    .prepare(
+      `SELECT ticker,
+              COUNT(*) AS total,
+              SUM(sentiment = 'bullish') AS bullish,
+              SUM(sentiment = 'bearish') AS bearish,
+              SUM(sentiment = 'neutral') AS neutral
+       FROM ticker_mentions
+       GROUP BY ticker ORDER BY total DESC, ticker ASC LIMIT ?`
+    )
+    .all(limit) as { ticker: string; total: number; bullish: number; bearish: number; neutral: number }[];
+}
+
+/** Overall sentiment distribution across all analyzed videos. */
+export async function getSentimentSplit(): Promise<Record<string, number>> {
+  const db = await getDb();
+  const rows = db
+    .prepare("SELECT overall_sentiment AS k, COUNT(*) AS n FROM summaries GROUP BY k")
+    .all() as { k: string; n: number }[];
+  return Object.fromEntries(rows.map((r) => [r.k, r.n]));
+}
+
+/** Headline counts for the at-a-glance strip. */
+export async function getKbStats() {
+  const db = await getDb();
+  const one = (sql: string) => (db.prepare(sql).get() as { n: number }).n;
+  return {
+    videos: one("SELECT COUNT(*) AS n FROM summaries"),
+    tickers: one("SELECT COUNT(DISTINCT ticker) AS n FROM ticker_mentions"),
+    channels: one("SELECT COUNT(*) AS n FROM sources"),
+  };
+}
