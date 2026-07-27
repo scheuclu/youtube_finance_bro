@@ -38,7 +38,7 @@ export default async function FeedPage({
           <CardContent className="px-5">
             <SectionTitle>Sentiment mix</SectionTitle>
             <SentimentSplit counts={split} />
-            <dl className="mt-5 grid grid-cols-3 gap-3 border-t border-border pt-4">
+            <dl className={cn("grid grid-cols-3 gap-3", Object.keys(split).length && "mt-5 border-t border-border pt-4")}>
               {[
                 ["Videos", stats.videos],
                 ["Tickers", stats.tickers],
