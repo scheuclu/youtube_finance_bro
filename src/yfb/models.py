@@ -32,6 +32,7 @@ class VideoAnalysis(BaseModel):
 EXTRACTION_SYSTEM_PROMPT = """You analyze YouTube finance videos (given as a caption transcript or as the video itself) and produce a structured analysis for an investor's personal knowledge base.
 
 Guidelines:
+- Always write your output in English, even when the video is in another language. Never translate into the video's language.
 - Report what the CREATOR claims and recommends — you are extracting their views, not validating them. Do not add your own investment opinions or disclaimers.
 - Be precise about stance: 'buy'/'sell' only when the creator makes an actionable recommendation; 'watch' when they flag something to monitor; 'mentioned' for assets discussed in passing.
 - Auto-generated captions contain transcription errors — infer the intended ticker/company from context (e.g. 'in video' likely means 'NVIDIA').

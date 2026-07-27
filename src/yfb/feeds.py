@@ -49,7 +49,14 @@ def parse_feed(xml: str | bytes) -> tuple[str | None, list[FeedEntry]]:
 def fetch_feed(channel: Channel) -> tuple[str | None, list[FeedEntry]]:
     import httpx
 
-    resp = httpx.get(channel.feed_url, timeout=30, follow_redirects=True)
+    # Best effort at untranslated metadata; YouTube still geolocates by IP, so
+    # pin display names in channels.yaml rather than trusting the feed title.
+    resp = httpx.get(
+        channel.feed_url,
+        timeout=30,
+        follow_redirects=True,
+        headers={"Accept-Language": "en-US,en;q=0.9"},
+    )
     resp.raise_for_status()
     return parse_feed(resp.content)
 

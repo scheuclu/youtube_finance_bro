@@ -1,8 +1,12 @@
 # Channels to watch. Get a channel_id from the channel page source
 # (look for "channelId") or: yt-dlp --print channel_id <any video URL>
+#
+# Always set `name` explicitly, from the channel's canonical title
+# (channelMetadataRenderer.title, or the @handle). The RSS feed's <title> is
+# localized by viewer IP — it would show a German name for an English channel.
 channels:
   - channel_id: UC6ipRbtXU3-xJLET6oz6Hsw
-    name: "Der Sofa Investor"
+    name: "Couch Investor"
   - channel_id: UCN5FOXOJfpX-edVOhd2k1kQ
     name: "fokusinvestor"
 
