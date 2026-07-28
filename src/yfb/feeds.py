@@ -61,6 +61,32 @@ def fetch_feed(channel: Channel) -> tuple[str | None, list[FeedEntry]]:
     return parse_feed(resp.content)
 
 
+def _normalize(name: str) -> str:
+    return "".join(ch for ch in name.lower() if ch.isalnum())
+
+
+def warn_on_name_mismatch(channel: Channel, feed_title: str | None) -> bool:
+    """Warn when the feed's own title doesn't resemble the configured name.
+
+    A mismatch usually means channel_id points at a different channel than
+    intended; it can also be YouTube serving a localized title. Either way it
+    is worth surfacing rather than silently watching the wrong feed.
+    """
+    if not (channel.name and feed_title):
+        return False
+    if _normalize(channel.name) == _normalize(feed_title):
+        return False
+    log.warning(
+        "channel %s: configured name %r but the feed calls itself %r — "
+        "check the channel_id points at the right channel (or it may just be "
+        "a localized title)",
+        channel.channel_id,
+        channel.name,
+        feed_title,
+    )
+    return True
+
+
 def poll_channel(conn: sqlite3.Connection, channel: Channel, settings: Settings) -> int:
     """Poll one channel's feed and insert unseen videos.
 
@@ -69,6 +95,7 @@ def poll_channel(conn: sqlite3.Connection, channel: Channel, settings: Settings)
     Returns the number of items inserted as 'new'.
     """
     channel_title, entries = fetch_feed(channel)
+    warn_on_name_mismatch(channel, channel_title)
     source_id, created = db.upsert_source(
         conn, "youtube_channel", channel.channel_id, channel.name or channel_title
     )
