@@ -76,3 +76,15 @@ def test_poll_channel_first_sight_skips_then_new(tmp_path, monkeypatch):
     # Idempotent: re-polling inserts nothing.
     assert poll_channel(conn, channel, settings) == 0
     assert conn.execute("SELECT COUNT(*) FROM items").fetchone()[0] == 4
+
+
+def test_warn_on_name_mismatch(caplog):
+    """A channel_id pointing at the wrong channel must not pass silently."""
+    from yfb.feeds import warn_on_name_mismatch
+
+    assert warn_on_name_mismatch(Channel("UC1", "Couch Investor"), "Der Sofa Investor") is True
+    assert "check the channel_id" in caplog.text
+
+    # Cosmetic differences are not a mismatch.
+    assert warn_on_name_mismatch(Channel("UC1", "Couch Investor"), "couchinvestor") is False
+    assert warn_on_name_mismatch(Channel("UC1", None), "Anything") is False
