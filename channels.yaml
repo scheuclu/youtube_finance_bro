@@ -14,6 +14,10 @@ channels:
     name: "Couch Investor"
   - channel_id: UCN5FOXOJfpX-edVOhd2k1kQ
     name: "fokusinvestor"
+  # Congressional trade disclosures. Posts ~30s Shorts, so summaries are brief
+  # by nature — the value is the ticker/politician facts, not the analysis.
+  - channel_id: UCjNN2z0-TQJecNocZT-V1rQ
+    name: "Politician Trade Tracker"
 
 settings:
   # Ignore feed entries older than this (guards against feed weirdness and
