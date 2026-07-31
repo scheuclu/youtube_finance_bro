@@ -9,6 +9,10 @@ on:
         description: "Also summarize N most recent already-seen videos (0 = none). Run from CI so titles come back in English."
         default: "0"
         required: false
+      backfill_channel:
+        description: "Restrict the backfill to one channel_id (blank = newest across all channels)"
+        default: ""
+        required: false
 
 # One pipeline run at a time; queued (not cancelled) so a run is never
 # killed mid-DB-commit.
@@ -37,7 +41,13 @@ jobs:
         if: ${{ github.event.inputs.backfill_limit != '' && github.event.inputs.backfill_limit != '0' }}
         env:
           BACKFILL_LIMIT: ${{ github.event.inputs.backfill_limit }}
-        run: python -m yfb backfill --limit "$BACKFILL_LIMIT"
+          BACKFILL_CHANNEL: ${{ github.event.inputs.backfill_channel }}
+        run: |
+          if [ -n "$BACKFILL_CHANNEL" ]; then
+            python -m yfb backfill --limit "$BACKFILL_LIMIT" --channel "$BACKFILL_CHANNEL"
+          else
+            python -m yfb backfill --limit "$BACKFILL_LIMIT"
+          fi
 
       - name: Run pipeline
         run: python -m yfb run
